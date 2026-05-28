@@ -28,17 +28,19 @@ PRG="$0"
 # Need this for relative symlinks.
 while [ -h "$PRG" ] ; do
     ls -ld "$PRG"
-    LINK=$(ls -l "$PRG" | awk '{print $NF}')
+    LINK=`ls -l "$PRG" | awk '{print $NF}'`
     case $LINK in
         /*) PRG="$LINK" ;;
-        *) PRG=$(dirname "$PRG")/"$LINK" ;;
+        *) PRG=`dirname "$PRG"`"/$LINK" ;;
     esac
 done
-SAVED="$(cd "$(dirname "$PRG")" >/dev/null 2>&1 && pwd)"
-cd "$SAVED" >/dev/null 2>&1
-APP_HOME="$(cd "$(dirname "$SAVED")" >/dev/null 2>&1 && pwd)"
-cd "$SAVED" >/dev/null 2>&1
-APP_HOME="$(dirname "$APP_HOME")"
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`" >/dev/null
+APP_HOME="`pwd -P`"
+cd "$SAVED" >/dev/null
+
+APP_NAME="Gradle"
+APP_BASE_NAME=`basename "$0"`
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
@@ -62,7 +64,7 @@ cygwin=false
 msys=false
 darwin=false
 nonstop=false
-case "$( uname )" in
+case "`uname`" in
   CYGWIN* )
     cygwin=true
     ;;
@@ -78,6 +80,7 @@ case "$( uname )" in
 esac
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
@@ -95,90 +98,59 @@ location of your Java installation."
     fi
 else
     JAVACMD="java"
-    if ! command -v java >/dev/null 2>&1
-    then
-        die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
 
 Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
-    fi
 fi
 
 # Increase the maximum file descriptors if we can.
-if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
-    case $MAX_FD in #(
-      max*)
-        # In POSIX sh, ulimit -H is undefined. That's why the result is checked for the string "unlimited".
-        MAX_FD=$( ulimit -H -n ) ||
-            warn "Could not query maximum file descriptor limit"
-    ;;
-    esac
-    case $MAX_FD in  #(
-      '' | soft) :;; #(
-      *)
-        ulimit -n "$MAX_FD" ||
-            warn "Could not set maximum file descriptor limit to $MAX_FD"
-    ;;
-    esac
+if [ "$cygwin" = "false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
+    MAX_FD_LIMIT=`ulimit -H -n`
+    if [ $? -eq 0 ] ; then
+        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
+            MAX_FD="$MAX_FD_LIMIT"
+        fi
+        ulimit -n $MAX_FD
+        if [ $? -ne 0 ] ; then
+            warn "Could not set maximum file descriptor limit: $MAX_FD"
+        fi
+    else
+        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
+    fi
 fi
 
-# Collect all arguments for the java command, stacking in reverse order:
-#   * args from the command line
-#   * the main class name
-#   * -classpath
-#   * -D...appname settings
-#   * --module-path (only if needed)
-#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables.
+# For Darwin, add options to specify how the application appears in the dock
+if $darwin; then
+    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
+fi
 
 # For Cygwin or MSYS, switch paths to Windows format before running java
-if "$cygwin" || "$msys" ; then
-    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
-    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
+if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
+    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
 
-    JAVACMD=$( cygpath --unix "$JAVACMD" )
+    JAVACMD=`cygpath --unix "$JAVACMD"`
 
-    # Now convert the arguments - kludge to limit ourselves to /bin/sh
-    for arg do
-        if
-            case $arg in                                #(
-              -*)   false ;;                            # don't match the end
-              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
-                    [ -e "$t" ] ;;                      #(
-              *)    false ;;
-            esac
-        then
-            arg=$( cygpath --path --mixed "$arg" )
+    # We build the pattern for arguments to be converted via cygpath
+    ROOTDIRSRAW=`find -L / -maxdepth 3 -type d -name java >/dev/null 2>&1 && find -L / -maxdepth 3 -type d -name java | head -1`
+    # Add a user-defined pattern to the cygpath arguments
+    if [ "$GRADLE_CYGWIN_VERBOSE" = "true" ] ; then
+        echo "initial CLASSPATH : $CLASSPATH"
+        echo "initial JAVACMD   : $JAVACMD"
+        echo "GRADLE_SKIP_VALIDATION : $GRADLE_SKIP_VALIDATION"
+    fi
+    # if GRADLE_SKIP_VALIDATION is set to "true", skip the validation of variables
+    if [ "$GRADLE_SKIP_VALIDATION" != "true" ] ; then
+        if [ "$ROOTDIR" = "" ] ; then
+            ROOTDIR=`cygpath -d / 2>/dev/null`
         fi
-        # Roll the args list around exactly as many times as the number of args.
-        set -- "$@" "$arg"
-    done
+    fi
 fi
 
-# Collect all arguments for the java command;
-#   * $DEFAULT_JVM_OPTS, $JAVA_OPTS, and $GRADLE_OPTS can contain fragments of
-#     shell script including quotes and variable substitutions, so put them in
-#     double quotes to make sure that they get re-expanded; and
-#   * put everything else in single quotes, so that it's not re-expanded.
+export CLASSPATH="$CLASSPATH"
 
-set -- \
-        "-Dorg.gradle.appname=$APP_BASE_NAME" \
-        -classpath "$CLASSPATH" \
-        org.gradle.wrapper.GradleWrapperMain \
-        "$@"
-
-# Stop when "xargs" was not found in the first form of checks below.
-# "serverless" will also be caught by "test -f".
-if ! command -v xargs >/dev/null 2>&1
-then
-    die "xargs not found"
-fi
-
-# Use "xargs" to parse quoted args.
-# With -n1 it outputs one arg per line, very useful for using "while read" to process file lists.
-# This allows complete file names with spaces, as long as they are quoted as needed.
-eval "set -- $(
-        printf '%s\n' "$@" |
-        xargs -I {} printf '%s\n' '{}'
-)" || die "xargs failed"
-
-exec "$JAVACMD" "$@"
+exec "$JAVACMD" $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS \
+	-classpath "$CLASSPATH" \
+	org.gradle.wrapper.GradleWrapperMain \
+	"$@"
