@@ -1,0 +1,109 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '[6,)'
+    id 'eclipse'
+    id 'maven-publish'
+}
+
+version = '1.0.0'
+group = 'com.chappcG.cinematicbars'
+archivesBaseName = 'cinematicbars'
+
+base {
+    archivesName = 'cinematicbars'
+}
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.level.net.minecraft', 'debug'
+            property 'forge.enabledGameTestNamespaces', 'cinematicbars'
+            mods {
+                cinematicbars {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run/server')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.level.net.minecraft', 'debug'
+            property 'forge.enabledGameTestNamespaces', 'cinematicbars'
+            args '--nogui'
+            mods {
+                cinematicbars {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        gameTestServer {
+            workingDirectory project.file('run/gametestserver')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.level.net.minecraft', 'debug'
+            property 'forge.enabledGameTestNamespaces', 'cinematicbars'
+            args '--nogui'
+            mods {
+                cinematicbars {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run/data')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.level.net.minecraft', 'debug'
+            args '--mod', 'cinematicbars', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            mods {
+                cinematicbars {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : "cinematicbars",
+                "Specification-Vendor"    : "chappcG",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "chappcG",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
