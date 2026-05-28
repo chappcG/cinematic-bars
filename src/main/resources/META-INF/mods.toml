@@ -1,0 +1,25 @@
+modLoader="javafxmod"
+loaderVersion="[47,)"
+license="MIT"
+showAsResource=false
+
+[[mods]]
+modId="cinematicbars"
+version="1.0.0"
+displayName="Cinematic Bars"
+description='''A Minecraft mod that adds cinematic black bars to the top and bottom of your screen for a more cinematic viewing experience.'''
+logoFile="assets/cinematicbars/icon.png"
+
+[[dependencies.cinematicbars]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.cinematicbars]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="CLIENT"
